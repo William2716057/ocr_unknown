@@ -42,7 +42,7 @@ class Source:
 
 
 def ink_mask(img):
-    """255 where there is dark ink (any colour darker than the paper)."""
+    """255 where there is dark ink (any colour darker than paper)."""
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     _, ink = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     return ink
@@ -50,7 +50,7 @@ def ink_mask(img):
 
 # Glyph features + sample library
 def normalize(ink_crop):
-    """Tight-crop the ink, pad to a square, resize. Returns (SIZExSIZE uint8, aspect) or None."""
+    """Tight-crop the ink, pad to square, resize. Returns (SIZExSIZE uint8, aspect) or None."""
     pts = cv2.findNonZero(ink_crop)
     if pts is None:
         return None
@@ -184,7 +184,7 @@ def train_gui(args):
     class App:
         def __init__(self, root):
             self.root = root
-            root.title("glyph_ocr - drag a box on a glyph, type its letter")
+            root.title("glyph_ocr - drag a box onto a glyph and type its letter")
             root.geometry("1250x880")
             self.page, self.zoom = 0, 1.0
             self.max_dist = tk.DoubleVar(value=args.max_dist)
@@ -303,7 +303,7 @@ def train_gui(args):
             self.status.config(text=f"Page {self.page + 1}/{src.n} | zoom {self.zoom:.0%} | "
                                     f"{len(lib.labels)} samples, {len(set(lib.labels))} distinct letters{extra}")
 
-        # ---- mouse
+        #mouse handling
         def press(self, e):
             self.start = (self.c.canvasx(e.x), self.c.canvasy(e.y))
             self.rect = self.c.create_rectangle(*self.start, *self.start, outline="orange",
