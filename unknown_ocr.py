@@ -47,8 +47,8 @@ def ink_mask(img):
     _, ink = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     return ink
 
-# Glyph features + sample library
 
+# Glyph features + sample library
 def normalize(ink_crop):
     """Tight-crop the ink, pad to a square, resize. Returns (SIZExSIZE uint8, aspect) or None."""
     pts = cv2.findNonZero(ink_crop)
@@ -116,6 +116,7 @@ def classify(lib, img, aspect, max_dist):
     j = int(d.argmin())
     return (lib.labels[j] if d[j] <= max_dist else "?"), float(d[j])
 
+
 # Segmentation + recognition
 def recognise(img, lib, max_dist=6.0, dilate=1, gap_factor=0.0, ink=None):
     """Returns (rows, ref_height). rows = list of lines; each line a list of
@@ -169,6 +170,7 @@ def recognise(img, lib, max_dist=6.0, dilate=1, gap_factor=0.0, ink=None):
 
 def page_text(rows):
     return "\n".join("".join(it["label"] for it in row).strip() for row in rows)
+
 
 # Training GUI
 def train_gui(args):
@@ -301,7 +303,7 @@ def train_gui(args):
             self.status.config(text=f"Page {self.page + 1}/{src.n} | zoom {self.zoom:.0%} | "
                                     f"{len(lib.labels)} samples, {len(set(lib.labels))} distinct letters{extra}")
 
-        #mouse functions
+        # ---- mouse
         def press(self, e):
             self.start = (self.c.canvasx(e.x), self.c.canvasy(e.y))
             self.rect = self.c.create_rectangle(*self.start, *self.start, outline="orange",
@@ -366,6 +368,7 @@ def train_gui(args):
     App(root)
     root.mainloop()
 
+
 # Batch OCR
 def parse_pages(spec, n):
     if not spec:
@@ -415,6 +418,63 @@ def ocr_cmd(args):
         print(text)
 
 
+# Interactive mode (no command-line arguments, e.g. pressing F5 in Visual Studio)
+def _ask(prompt, default=""):
+    suffix = f" [{default}]" if default else ""
+    s = input(f"{prompt}{suffix}: ").strip().strip('"').strip("'")
+    return s or default
+
+
+def _pick_files():
+    """Native file-open dialog; returns [] if tkinter is unavailable or the user cancels."""
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        root = tk.Tk()
+        root.withdraw()
+        root.attributes("-topmost", True)
+        files = filedialog.askopenfilenames(
+            title="Select PDF(s) or image(s)",
+            filetypes=[("PDF / images", "*.pdf *.png *.jpg *.jpeg *.bmp *.tif *.tiff"),
+                       ("All files", "*.*")])
+        root.destroy()
+        return list(files)
+    except Exception:
+        return []
+
+
+def prompt_for_argv():
+    """Ask the user for everything the command line would normally supply."""
+    print("glyph_ocr - interactive mode (no command-line arguments were given)\n")
+    mode = ""
+    while mode not in ("train", "ocr"):
+        mode = _ask("Mode: 'train' (teach glyphs) or 'ocr' (read pages)", "train").lower()
+
+    print("Choose the PDF/image file(s) in the dialog that opens...")
+    files = _pick_files()
+    if not files:
+        raw = _ask("Path to PDF/image (separate several with ;)")
+        files = [f.strip().strip('"') for f in raw.split(";") if f.strip()]
+    if not files:
+        sys.exit("No input file given.")
+
+    argv = [mode, *files]
+    argv += ["--lib", _ask("Sample library file", "glyph_library.npz")]
+    argv += ["--max-dist", _ask("Match threshold (lower = stricter)", "6.0")]
+    argv += ["--dpi", _ask("PDF render DPI", "200")]
+    if mode == "ocr":
+        pages = _ask("Pages (e.g. 1-3,7; blank = all)")
+        if pages:
+            argv += ["--pages", pages]
+        argv += ["--out", _ask("Output text file", "output.txt")]
+        if _ask("Save annotated debug images? (y/n)", "n").lower().startswith("y"):
+            argv.append("--debug")
+        gap = _ask("Gap factor for words without dots (0 = off)", "0")
+        if gap not in ("", "0", "0.0"):
+            argv += ["--gap-factor", gap]
+    return argv
+
+
 def main():
     ap = argparse.ArgumentParser(description="Teach-by-example OCR for unfamiliar fonts")
     sub = ap.add_subparsers(dest="cmd", required=True)
@@ -433,8 +493,11 @@ def main():
     sub.choices["ocr"].add_argument("--gap-factor", type=float, default=0.0,
                                     help="also insert a space for gaps wider than this x glyph height "
                                          "(for texts without word dots; try 0.5)")
-    args = ap.parse_args()
+    interactive = len(sys.argv) == 1    
+    args = ap.parse_args(prompt_for_argv() if interactive else None)
     train_gui(args) if args.cmd == "train" else ocr_cmd(args)
+    if interactive:
+        input("\nDone. Press Enter to close...")
 
 
 if __name__ == "__main__":
