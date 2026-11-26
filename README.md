@@ -8,6 +8,11 @@ Instead of relying on a pre-trained OCR model, **Glyph OCR allows users to build
 
 The goal is to provide a practical approach to extracting text from difficult or unfamiliar character sets where existing OCR solutions may produce unreliable results.
 
+## Display
+
+<img width="1552" height="965" alt="snapshot" src="https://github.com/user-attachments/assets/f3644314-32db-484b-b386-7fb19948e045" />
+
+
 ## Features
 
 - **Train-by-example OCR:** Teach the program characters by selecting glyphs directly from source documents.
