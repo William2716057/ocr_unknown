@@ -98,8 +98,8 @@ Optional debug images can be generated with recognition bounding boxes to help i
 Clone the repository:
 
 ```bash
-git clone https://github.com/USERNAME/REPOSITORY.git
-cd REPOSITORY
+git clone https://github.com/William2716057/ocr_unknown.git
+cd ocr_unknown
 ```
 
 Install the required dependencies:
