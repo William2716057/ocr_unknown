@@ -448,7 +448,7 @@ def prompt_for_argv():
     print("glyph_ocr - interactive mode (no command-line arguments were given)\n")
     mode = ""
     while mode not in ("train", "ocr"):
-        mode = _ask("Mode: 'train' (teach glyphs) or 'ocr' (read pages)", "train").lower()
+        mode = _ask("Mode: Enter 'train' or 'ocr'", "train").lower()
 
     print("Choose the PDF/image file(s) in the dialog that opens...")
     files = _pick_files()
