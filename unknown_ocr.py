@@ -359,7 +359,7 @@ def train_gui(args):
         def show_text(self):
             self.run_rec()
             win = tk.Toplevel(self.root)
-            win.title(f"Recognised text - page {self.page + 1}")
+            win.title(f"Recognised text  page {self.page + 1}")
             t = tk.Text(win, width=80, height=25, font=("TkFixedFont", 13), wrap="none")
             t.pack(fill="both", expand=True)
             t.insert("1.0", page_text(self.rec))
